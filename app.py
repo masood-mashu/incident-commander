@@ -607,5 +607,10 @@ Built for the **Meta PyTorch OpenEnv Hackathon 2026** | Features: delayed-failur
 Resources: [OpenEnv](https://github.com/meta-pytorch/OpenEnv) | [TRL](https://huggingface.co/docs/trl)
 """)
 
+from incident_commander.server.app import app as fastapi_app
+
+app = gr.mount_gradio_app(fastapi_app, demo, path="/")
+
 if __name__ == "__main__":
-    demo.launch(server_name="0.0.0.0", server_port=7860)
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=7860)
