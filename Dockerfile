@@ -11,7 +11,7 @@ WORKDIR /app
 COPY --chown=user:user . /app/
 
 # Install project and dependencies
-RUN pip install --no-cache-dir .
+RUN pip install --no-cache-dir -r requirements.txt && pip install --no-cache-dir .
 
 # Make the start script executable
 RUN chmod +x /app/start.sh
