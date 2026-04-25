@@ -3,7 +3,8 @@ title: Incident Commander
 emoji: "🚨"
 colorFrom: red
 colorTo: blue
-sdk: gradio
+sdk: docker
+app_port: 7860
 sdk_version: "6.13.0"
 app_file: app.py
 pinned: true
@@ -150,6 +151,14 @@ Latest held-out `test` split snapshot, 100 episodes each:
 - `heuristic`: mean reward `2.373`, resolved rate `0.50`
 - `trained`: mean reward `4.650`, resolved rate `0.72`
 
+### What The Trained Agent Learns
+
+Compared with the heuristic policy, the trained policy shows a more reliable incident workflow:
+
+- It queries telemetry earlier (metrics/logs/runbook) before locking in a root-cause hypothesis.
+- In governance scenarios, it is more likely to check compliance/budget before failover instead of taking a technically correct but policy-violating shortcut.
+- It closes incidents later and with fewer premature close attempts, which improves long-term stability and resolved-rate outcomes.
+
 ### LLM Post-Training Pipeline Verification (TRL GRPO)
 
 While the tabular policy validates the environment mechanics, the end goal is LLM fine-tuning. We have integrated a full **TRL GRPO training pipeline**. Due to local hardware constraints, the committed artifacts represent a **tiny-gpt2 pipeline verification smoke test**. This proves the OpenEnv integration and reward extraction are 100% production-ready for a full-scale Qwen run on appropriate hardware.
@@ -192,6 +201,9 @@ python examples/trl_grpo_training.py --model sshleifer/tiny-gpt2 --max-steps 1
 | DQD data | `outputs/evals/decision_quality_delta.json` | Step-by-step counterfactual |
 | Robustness table | `outputs/evals/robustness_summary.json` | OOD + stress benchmarks |
 | Eval summary | `outputs/evals/policy_eval_summary.json` | In-distribution results |
+| TRL GRPO reward curve | `outputs/evals/trl_grpo/trl_grpo_reward_curve.png` | LLM smoke-test reward progression |
+| TRL GRPO loss curve | `outputs/evals/trl_grpo/trl_grpo_loss_curve.png` | LLM smoke-test optimization signal |
+| TRL GRPO run summary | `outputs/evals/trl_grpo/trl_grpo_run.json` | Serialized run metadata and outcomes |
 
 ---
 
@@ -241,7 +253,7 @@ python -m unittest discover -s tests -v           # 19 tests
 - **GitHub Repo:** [masood-mashu/incident-commander](https://github.com/masood-mashu/incident-commander)
 - **Hugging Face Space:** [Masood03/incident-commander](https://huggingface.co/spaces/Masood03/incident-commander)
 - **TRL Notebook:** [notebooks/incident_commander_trl_grpo.ipynb](notebooks/incident_commander_trl_grpo.ipynb)
-- **Published Blog:** [BLOG.md](BLOG.md)
+- **Blog Draft (repo):** [BLOG.md](BLOG.md)
 - **Training Scripts:** [examples/](examples/)
 - **Evaluation Outputs:** [outputs/evals/](outputs/evals/)
 
