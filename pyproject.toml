@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "incident-commander"
+version = "0.1.0"
+description = "OpenEnv-style enterprise outage resolution environment for long-horizon RL."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi>=0.104.0",
+    "uvicorn>=0.24.0",
+    "pydantic>=2.0.0",
+    "requests>=2.31.0",
+    "openenv-core>=0.1.0",
+]
+
+[project.optional-dependencies]
+dev = []
+training = [
+    "gradio==6.13.0",
+    "matplotlib>=3.7.0",
+    "numpy>=1.24.0",
+    "trl==0.24.0",
+    "transformers==4.56.1",
+    "accelerate==1.10.0",
+    "datasets==4.0.0",
+    "peft==0.17.1",
+    "bitsandbytes==0.43.3",
+    "jmespath>=1.0.0",
+]
+
+[project.scripts]
+incident-commander-server = "incident_commander.server.__main__:main"
+
+[tool.setuptools]
+packages = ["incident_commander", "incident_commander.server"]

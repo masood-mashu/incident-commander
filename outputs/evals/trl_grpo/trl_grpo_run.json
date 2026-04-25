@@ -1,0 +1,13 @@
+{
+  "model_name": "sshleifer/tiny-gpt2",
+  "seed": 42,
+  "max_steps": 1,
+  "dataset_repeats": 2,
+  "train_runtime": 9.7203,
+  "train_steps_per_second": 0.103,
+  "reward_points": 1,
+  "loss_points": 1,
+  "final_reward": 6.430000305175781,
+  "final_loss": 0.0,
+  "best_reward": 6.430000305175781
+}

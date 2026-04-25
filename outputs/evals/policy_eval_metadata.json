@@ -1,0 +1,7 @@
+{
+  "evaluated_split": "test",
+  "episodes_per_policy": 100,
+  "seed_start": 11,
+  "timestamp_utc": "2026-04-25T10:07:58.584523+00:00",
+  "git_commit": "ba89a9d"
+}

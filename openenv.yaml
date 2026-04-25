@@ -1,0 +1,10 @@
+name: incident-commander
+version: "0.1.0"
+description: Multi-app enterprise outage resolution environment for long-horizon RL
+entrypoint: incident_commander.server.app:app
+client_class: incident_commander.client.IncidentCommanderEnv
+tags:
+  - openenv
+  - rl
+  - enterprise
+  - incidents

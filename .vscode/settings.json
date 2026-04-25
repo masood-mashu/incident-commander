@@ -1,0 +1,7 @@
+{
+    "python.analysis.diagnosticMode": "openFilesOnly",
+    "python.analysis.ignore": [
+        "**/notebooks/incident_commander_trl_grpo.ipynb"
+    ],
+    "files.eol": "\n"
+}
