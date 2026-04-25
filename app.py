@@ -15,8 +15,13 @@ from incident_commander.models import ActionType, IncidentAction, IncidentFamily
 from incident_commander.server.incident_environment import IncidentCommanderEnvironment
 
 JsonDict = dict[str, Any]
-EVAL_SUMMARY_PATH = Path(__file__).resolve().parent / "outputs" / "evals" / "policy_eval_summary.json"
-EVAL_METADATA_PATH = Path(__file__).resolve().parent / "outputs" / "evals" / "policy_eval_metadata.json"
+EVAL_SUMMARY_PATH = Path(__file__).parent / "outputs" / "evals" / "policy_eval_summary.json"
+if not EVAL_SUMMARY_PATH.exists():
+    EVAL_SUMMARY_PATH = Path("outputs/evals/policy_eval_summary.json")
+
+EVAL_METADATA_PATH = Path(__file__).parent / "outputs" / "evals" / "policy_eval_metadata.json"
+if not EVAL_METADATA_PATH.exists():
+    EVAL_METADATA_PATH = Path("outputs/evals/policy_eval_metadata.json")
 _ENV_LOCK = threading.RLock()
 _ENV_BY_SESSION: dict[str, IncidentCommanderEnvironment] = {}
 
@@ -480,7 +485,9 @@ footer { display: none !important; }
 """
 
 
-DQD_PATH = Path(__file__).resolve().parent / "outputs" / "evals" / "decision_quality_delta.json"
+DQD_PATH = Path(__file__).parent / "outputs" / "evals" / "decision_quality_delta.json"
+if not DQD_PATH.exists():
+    DQD_PATH = Path("outputs/evals/decision_quality_delta.json")
 
 
 def load_counterfactual_markdown() -> str:
