@@ -27,7 +27,6 @@ training = [
     "accelerate==1.10.0",
     "datasets==4.0.0",
     "peft==0.17.1",
-    "bitsandbytes==0.43.3",
     "jmespath>=1.0.0",
 ]
 
