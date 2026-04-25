@@ -10,6 +10,10 @@ from typing import Any, cast
 import uuid
 
 import gradio as gr
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+import numpy as np
 
 from incident_commander.models import ActionType, IncidentAction, IncidentFamily
 from incident_commander.server.incident_environment import IncidentCommanderEnvironment
@@ -406,11 +410,6 @@ def reward_chart(rewards: list[float]):
     if not rewards:
         return None
     try:
-        import matplotlib
-        matplotlib.use("Agg")
-        import matplotlib.pyplot as plt
-        import numpy as np
-
         fig, ax = plt.subplots(figsize=(7, 3), facecolor="white")  # pyright: ignore[reportUnknownMemberType]
         fig = cast(Any, fig)
         ax = cast(Any, ax)
@@ -436,7 +435,10 @@ def reward_chart(rewards: list[float]):
 
         plt.tight_layout()
         return fig
-    except Exception:
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        print(f"Plotting error: {e}")
         return None
 
 
@@ -545,7 +547,9 @@ def load_counterfactual_markdown() -> str:
         return f"### Counterfactual Analysis\nError loading: {exc}"
 
 
-with gr.Blocks(title="Incident Commander — OpenEnv", css=CSS, theme=gr.themes.Soft()) as demo:
+with gr.Blocks(title="Incident Commander — OpenEnv") as demo:
+    demo.css = CSS
+    demo.theme = gr.themes.Soft()
     state = gr.State(SessionState())
 
     gr.Markdown(
