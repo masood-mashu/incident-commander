@@ -255,8 +255,14 @@ def save_causal_chart(results: list[dict[str, Any]]) -> None:
 def main() -> None:
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
-    # Import heuristic policy from the evaluation module.
-    from examples.evaluate_policies import heuristic_policy
+    # Import tabular policy
+    from examples.minimal_trl_training import TabularPolicy
+    POLICY_PATH = OUTPUT_DIR / "tabular_policy.json"
+    if not POLICY_PATH.exists():
+        raise RuntimeError("Trained policy not found. Run examples/minimal_trl_training.py first.")
+    
+    trained = TabularPolicy.load(POLICY_PATH)
+    trained_policy = lambda obs: trained.greedy_action(obs)
 
     # Run counterfactual analysis on all base scenarios.
     env = IncidentCommanderEnvironment()
@@ -272,7 +278,7 @@ def main() -> None:
     results: list[dict[str, Any]] = []
     for sid in scenario_ids:
         print(f"  Counterfactual analysis: {sid}")
-        result = counterfactual_episode(sid, heuristic_policy, top_k=3)
+        result = counterfactual_episode(sid, trained_policy, top_k=3)
         results.append(result)
 
     # Save artifacts.
