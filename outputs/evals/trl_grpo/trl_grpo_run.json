@@ -1,13 +1,13 @@
 {
-  "model_name": "sshleifer/tiny-gpt2",
+  "model_name": "Qwen/Qwen2.5-0.5B-Instruct",
   "seed": 42,
-  "max_steps": 1,
-  "dataset_repeats": 2,
-  "train_runtime": 9.7203,
-  "train_steps_per_second": 0.103,
-  "reward_points": 1,
-  "loss_points": 1,
-  "final_reward": 6.430000305175781,
+  "max_steps": 20,
+  "dataset_repeats": 24,
+  "train_runtime": 280.3946,
+  "train_steps_per_second": 0.071,
+  "reward_points": 20,
+  "loss_points": 20,
+  "final_reward": 4.820000171661377,
   "final_loss": 0.0,
-  "best_reward": 6.430000305175781
+  "best_reward": 8.84000015258789
 }

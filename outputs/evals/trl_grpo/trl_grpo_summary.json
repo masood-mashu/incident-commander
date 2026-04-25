@@ -1,7 +1,7 @@
 {
-  "reward_points": 1,
-  "loss_points": 1,
-  "final_reward": 6.430000305175781,
+  "reward_points": 20,
+  "loss_points": 20,
+  "final_reward": 4.820000171661377,
   "final_loss": 0.0,
-  "best_reward": 6.430000305175781
+  "best_reward": 8.84000015258789
 }
