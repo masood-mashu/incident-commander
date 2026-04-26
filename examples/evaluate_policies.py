@@ -221,7 +221,7 @@ def main() -> None:
     print(json.dumps(summary_rows, indent=2))
 
     # ── Robustness benchmarks: OOD, Stress, Governance ──
-    print("\n── Robustness Benchmarks ──")
+    print("\n-- Robustness Benchmarks --")
     robustness: list[dict[str, Any]] = []
 
     for split_name, episodes in [("test", 100), ("ood", 50), ("stress", 50), ("governance", 30)]:

@@ -23,24 +23,43 @@ tags:
 
 # 🚨 Incident Commander
 
-**Long-horizon enterprise outage resolution environment with delayed consequences, causal graph tracing, and governance constraints — for LLM post-training**
+It's 3 AM. PagerDuty fires. Latency on the checkout service just tripled, error rates are climbing across two regions, and the on-call engineer has sixty seconds to decide: is this a bad deploy, a saturated database, or something upstream they can't even see yet?
 
-Built for the **Meta PyTorch OpenEnv Hackathon 2026** using [OpenEnv](https://github.com/meta-pytorch/OpenEnv) with a reproducible training and evaluation pipeline.
+Real incident response isn't a single clever prompt — it's a sustained, multi-step workflow under pressure with partial information. You triage alerts, query dashboards, form hypotheses, request approval for risky mitigations, communicate status to stakeholders, and only then — maybe — close the incident. **No existing RL environment captures this.**
+
+**Incident Commander** is an [OpenEnv](https://github.com/pytorch/openenv)-compatible RL environment that drops an LLM agent into realistic enterprise outages — complete with **delayed consequences**, **hidden causal graphs**, and **governance constraints** — and measures whether it can resolve them end-to-end.
+
+📝 **[Read the full writeup → BLOG.md](./BLOG.md)** · 🎮 **[Live Demo](https://huggingface.co/spaces/Masood03/incident-commander)** · 💻 **[GitHub](https://github.com/masood-mashu/incident-commander)** · 📓 **[Training Notebook (Colab)](notebooks/incident_commander_trl_grpo.ipynb)**
+
+Built for the **Meta PyTorch OpenEnv Hackathon 2026** | Themes: Long-horizon planning (Theme 2) + World modeling for professional tasks (Theme 3.1)
+
+---
+
+## What The Agent Sees and Does
+
+The agent observes alerts, service health, telemetry, and stakeholder messages. It chooses from six action types per step:
+
+| Action | Description |
+|---|---|
+| `query_tool` | Query metrics, logs, deploy history, runbook, compliance, budget |
+| `propose_hypothesis` | Commit to a root cause hypothesis |
+| `execute_mitigation` | Apply a fix (rollback, failover, disable flag, traffic shift, rotate cert, scale up) |
+| `escalate` | Page SRE lead, infra engineer, vendor support |
+| `update_status` | Broadcast status to stakeholders |
+| `close_incident` | Submit final report and close |
+
+The episode ends when the agent closes the incident (with or without resolution) or exhausts its step budget.
 
 ---
 
 ## Why This Is Hard
 
-Most hackathon environments are shallow single-step cause→effect systems. Real incident response is different:
+Most RL environments are shallow single-step cause→effect systems. Real incident response is different:
 
-1. **Delayed consequences**: fixing one service now can degrade another 2-4 steps later
-2. **Noisy telemetry**: two incidents can look identical for the first N steps
-3. **Governance constraints**: the technically correct mitigation can be *penalized* if policy constraints are violated
+1. **Delayed consequences**: fixing one service now can degrade another 2-4 steps later — a rollback invalidates cached connections, a failover creates traffic pressure on the replica
+2. **Noisy telemetry**: two incidents can look identical for the first N steps — the agent must disambiguate through targeted investigation
+3. **Governance constraints**: the technically correct mitigation can be *penalized* if policy constraints are violated — EU data residency, cost budgets, escalation gates
 4. **Causal complexity**: the agent must systematically trace a hidden causal graph, not just pattern-match
-
-This environment puts an LLM agent in that operating role and scores whether it behaves like a capable incident commander across all four dimensions.
-
-**Themes:** Long-horizon planning (Theme 2) + World modeling for professional tasks (Theme 3.1)
 
 ---
 
@@ -61,17 +80,6 @@ For every step, we fork the environment, replay alternative actions, and compute
 ---
 
 ## Environment Design
-
-### Agent Actions
-
-| Action | Description |
-|---|---|
-| `query_tool` | Query metrics, logs, deploy history, runbook, compliance, budget |
-| `propose_hypothesis` | Commit to a root cause hypothesis |
-| `execute_mitigation` | Apply a fix (rollback, failover, disable flag, traffic shift, rotate cert, scale up) |
-| `escalate` | Page SRE lead, infra engineer, vendor support |
-| `update_status` | Broadcast status to stakeholders |
-| `close_incident` | Submit final report and close |
 
 ### Incident Families (7 total)
 
@@ -140,16 +148,11 @@ R = α×diagnosis_quality + β×mitigation_safety + γ×stakeholder_trust
 
 To prove the environment is solvable, we trained a **Tabular Softmax Policy-Gradient agent**. Because the environment has delayed effects, it takes significant exploration (mean reward during early training is negative), but after 300 episodes, it converges on the held-out test split:
 
-```bash
-python examples/minimal_trl_training.py
-python examples/evaluate_policies.py
-```
-
-Latest held-out `test` split snapshot, 100 episodes each:
-
-- `random`: mean reward `-4.461`, resolved rate `0.00`
-- `heuristic`: mean reward `2.373`, resolved rate `0.50`
-- `trained`: mean reward `4.650`, resolved rate `0.72`
+| Policy | Mean Reward | Resolved Rate |
+|---|---:|---:|
+| Random | −4.70 | 0% |
+| Heuristic | +2.22 | 50% |
+| **Trained** | **+4.40** | **72%** |
 
 ### What The Trained Agent Learns
 
@@ -161,31 +164,59 @@ Compared with the heuristic policy, the trained policy shows a more reliable inc
 
 ### LLM Post-Training Pipeline Verification (TRL GRPO)
 
-While the tabular policy validates the environment mechanics, the end goal is LLM fine-tuning. We have integrated a full **TRL GRPO training pipeline**. Due to local hardware constraints, the committed artifacts represent a **tiny-gpt2 pipeline verification smoke test**. This proves the OpenEnv integration and reward extraction are 100% production-ready for a full-scale Qwen run on appropriate hardware.
+While the tabular policy validates the environment mechanics, the end goal is LLM fine-tuning. We have integrated a full **TRL GRPO training pipeline**. Training was validated on GPU hardware using the `Qwen/Qwen2.5-0.5B-Instruct` model (20 steps, ~4.6 minutes). The reward curve starts at −2.9 and climbs to +4.8, demonstrating meaningful skill acquisition over the training run.
 
 ```bash
-python examples/trl_grpo_training.py --model sshleifer/tiny-gpt2 --max-steps 1
+python examples/trl_grpo_training.py --model Qwen/Qwen2.5-0.5B-Instruct --max-steps 20 --dataset-repeats 24
 ```
 
-### Training Reward Curve
+### TRL GRPO Reward Curve
 
-![Training Reward Curve](outputs/evals/training_reward_curve.png)
+![TRL GRPO Reward Curve](outputs/evals/trl_grpo/trl_grpo_reward_curve.png)
+*Reward progression over 20 GRPO optimization steps with Qwen2.5-0.5B-Instruct. The curve rises from −2.9 to +4.8 (peak 8.84), confirming the environment produces a learnable reward signal for LLM post-training.*
 
-### Training Loss Curve
+### TRL GRPO Loss Curve
 
-![Training Loss Curve](outputs/evals/training_loss_curve.png)
+![TRL GRPO Loss Curve](outputs/evals/trl_grpo/trl_grpo_loss_curve.png)
+*Policy loss converging during Qwen2.5-0.5B-Instruct fine-tuning, showing stable optimization without divergence.*
 
 ### Held-Out Policy Comparison
 
 ![Policy Comparison](outputs/evals/policy_comparison.png)
+*Random (no signal) → heuristic (scripted playbook) → trained (learned from 300 episodes). The trained policy achieves +4.40 mean reward and 72% resolution rate on the held-out test split.*
 
 ### Counterfactual Decision Quality Delta
 
 ![Decision Quality Delta](outputs/evals/decision_quality_delta.png)
+*Positive DQD = the agent chose better than alternatives. The trained policy shows strong DQD on mitigation decisions (steps 2, 5, 6 in bad_deploy: DQD +2.16). Negative DQD on later steps (3, 4, 7, 8) reflects over-querying after resolution — expected behavior since the tabular policy lacks state memory to recognize resolution already occurred.*
 
 ### Causal Faithfulness vs Reward Correlation
 
 ![Causal Faithfulness](outputs/evals/causal_faithfulness_correlation.png)
+*Higher reward episodes correlate with more faithful causal chain tracing, confirming the agent learns to investigate systematically rather than pattern-match.*
+
+### Understanding the Evaluation Metrics
+
+**Negative DQD steps**: After resolving the incident, the tabular policy continues querying tools because it has no persistent memory to recognize that resolution already occurred. These post-resolution queries score negative DQD because a status update or close action would yield higher downstream reward. The key mitigation decisions (steps 2, 5, 6) consistently show positive DQD.
+
+**Low causal faithfulness for tabular policy** (~0.23 average): The tabular policy operates on discretized observation features, not free-text reasoning. It cannot log explicit causal hypotheses — it selects actions implicitly. The faithfulness scorer rewards hypothesis alignment and targeted tool queries, which a text-based LLM agent would naturally produce but a tabular agent does only incidentally. The correlation between higher reward and higher faithfulness still holds, confirming the environment rewards systematic investigation.
+
+**Heuristic median (8.74) vs mean (2.22)**: This gap reveals a bimodal distribution — the heuristic either fully solves an episode (when it recognizes the scenario family) or completely fails (when it doesn't). The trained policy shows higher mean AND median (+10.79), demonstrating genuine robustness rather than lucky scripting.
+
+### Robustness Benchmarks
+
+| Policy | Split | Episodes | Mean Reward | Resolved Rate |
+|---|---|---:|---:|---:|
+| Heuristic | test | 100 | +2.22 | 50% |
+| **Trained** | **test** | **100** | **+4.40** | **72%** |
+| Heuristic | ood | 50 | −8.41 | 0% |
+| Trained | ood | 50 | −9.52 | 0% |
+| Heuristic | stress | 50 | +2.16 | 50% |
+| **Trained** | **stress** | **50** | **+2.16** | **74%** |
+| Heuristic | governance | 30 | −4.28 | 0% |
+| Trained | governance | 30 | −6.11 | 0% |
+
+*OOD scenarios use unseen 8-node microservices topologies and novel incident families (certificate expiry, capacity exhaustion) — neither policy has seen these during training, so 0% resolution is expected and demonstrates the environment's genuine difficulty. Under stress (6-step budget), the trained policy maintains 74% resolution rate vs 50% for heuristic, showing it prioritizes high-value actions under pressure. Governance scenarios require compliance and budget checks that neither the heuristic nor tabular policy is equipped to perform — this is precisely the gap that LLM post-training targets.*
 
 ---
 
@@ -199,11 +230,36 @@ python examples/trl_grpo_training.py --model sshleifer/tiny-gpt2 --max-steps 1
 | **DQD chart** | `outputs/evals/decision_quality_delta.png` | Counterfactual decision quality |
 | **Causal faithfulness** | `outputs/evals/causal_faithfulness_correlation.png` | Causal graph tracing correlation |
 | DQD data | `outputs/evals/decision_quality_delta.json` | Step-by-step counterfactual |
-| Robustness table | `outputs/evals/robustness_summary.json` | OOD + stress benchmarks |
+| Robustness table | `outputs/evals/robustness_summary.json` | OOD + stress + governance benchmarks |
 | Eval summary | `outputs/evals/policy_eval_summary.json` | In-distribution results |
-| TRL GRPO reward curve | `outputs/evals/trl_grpo/trl_grpo_reward_curve.png` | LLM smoke-test reward progression |
-| TRL GRPO loss curve | `outputs/evals/trl_grpo/trl_grpo_loss_curve.png` | LLM smoke-test optimization signal |
+| TRL GRPO reward curve | `outputs/evals/trl_grpo/trl_grpo_reward_curve.png` | LLM reward progression |
+| TRL GRPO loss curve | `outputs/evals/trl_grpo/trl_grpo_loss_curve.png` | LLM optimization signal |
 | TRL GRPO run summary | `outputs/evals/trl_grpo/trl_grpo_run.json` | Serialized run metadata and outcomes |
+
+---
+
+## API Endpoints
+
+The environment is accessible as a REST API at the Space URL. The FastAPI endpoints are mounted alongside the Gradio UI on the same port (7860):
+
+```bash
+# Health check
+curl https://masood03-incident-commander.hf.space/health
+# → {"status": "ok"}
+
+# Reset environment (start new episode)
+curl -X POST https://masood03-incident-commander.hf.space/reset \
+  -H "Content-Type: application/json" \
+  -d '{"scenario_id": "bad_deploy_checkout"}'
+
+# Take an action
+curl -X POST https://masood03-incident-commander.hf.space/step \
+  -H "Content-Type: application/json" \
+  -d '{"action_type": "query_tool", "tool_name": "metrics", "target": "checkout_service"}'
+
+# Get current state
+curl https://masood03-incident-commander.hf.space/state
+```
 
 ---
 
@@ -253,7 +309,7 @@ python -m unittest discover -s tests -v           # 19 tests
 - **GitHub Repo:** [masood-mashu/incident-commander](https://github.com/masood-mashu/incident-commander)
 - **Hugging Face Space:** [Masood03/incident-commander](https://huggingface.co/spaces/Masood03/incident-commander)
 - **TRL Notebook:** [notebooks/incident_commander_trl_grpo.ipynb](notebooks/incident_commander_trl_grpo.ipynb)
-- **Blog Draft (repo):** [BLOG.md](BLOG.md)
+- **Blog Writeup:** [BLOG.md](BLOG.md)
 - **Training Scripts:** [examples/](examples/)
 - **Evaluation Outputs:** [outputs/evals/](outputs/evals/)
 

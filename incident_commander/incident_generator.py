@@ -139,7 +139,7 @@ def build_scenarios() -> list[IncidentScenario]:
             confounders=["bad_deploy"],
             disambiguating_tool="deploy_history:api_eu",
             causal_edges=[
-                CausalEdge("feature_flag_misconfig", "api_eu", "missing config key in staged experiment", "logs:api_eu"),
+                CausalEdge("feature_flag_misconfig", "api_eu", "missing config key in staged experiment", "api_eu"),
             ],
         ),
         IncidentScenario(
@@ -259,9 +259,9 @@ def build_v2_scenarios() -> list[IncidentScenario]:
                 ),
             ],
             causal_edges=[
-                CausalEdge("primary_db_failure", "primary_db", "storage engine WAL corruption", "logs:primary_db"),
-                CausalEdge("primary_db", "api_us_east", "all DB connections rejected", "metrics:api_us_east"),
-                CausalEdge("api_us_east", "global_lb", "us-east-1 health check failing", "metrics:primary_db"),
+                CausalEdge("primary_db_failure", "primary_db", "storage engine WAL corruption", "primary_db"),
+                CausalEdge("primary_db", "api_us_east", "all DB connections rejected", "api_us_east"),
+                CausalEdge("api_us_east", "global_lb", "us-east-1 health check failing", "primary_db"),
             ],
             delayed_effects_config=[
                 {"delay": 2, "target": "api_eu_west", "delta": -0.15, "desc": "EU traffic surge from US failover"},

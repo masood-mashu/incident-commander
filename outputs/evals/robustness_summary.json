@@ -1,0 +1,66 @@
+[
+  {
+    "policy": "heuristic",
+    "split": "test",
+    "episodes": 100,
+    "mean_reward": 2.217,
+    "resolved_rate": 0.5,
+    "mean_steps": 6.0
+  },
+  {
+    "policy": "trained",
+    "split": "test",
+    "episodes": 100,
+    "mean_reward": 4.403,
+    "resolved_rate": 0.72,
+    "mean_steps": 11.28
+  },
+  {
+    "policy": "heuristic",
+    "split": "ood",
+    "episodes": 50,
+    "mean_reward": -8.405,
+    "resolved_rate": 0.0,
+    "mean_steps": 9.24
+  },
+  {
+    "policy": "trained",
+    "split": "ood",
+    "episodes": 50,
+    "mean_reward": -9.519,
+    "resolved_rate": 0.0,
+    "mean_steps": 12.0
+  },
+  {
+    "policy": "heuristic",
+    "split": "stress",
+    "episodes": 50,
+    "mean_reward": 2.164,
+    "resolved_rate": 0.5,
+    "mean_steps": 6.0
+  },
+  {
+    "policy": "trained",
+    "split": "stress",
+    "episodes": 50,
+    "mean_reward": 2.158,
+    "resolved_rate": 0.74,
+    "mean_steps": 6.0
+  },
+  {
+    "policy": "heuristic",
+    "split": "governance",
+    "episodes": 30,
+    "mean_reward": -4.278,
+    "resolved_rate": 0.0,
+    "mean_steps": 6.0
+  },
+  {
+    "policy": "trained",
+    "split": "governance",
+    "episodes": 30,
+    "mean_reward": -6.109,
+    "resolved_rate": 0.0,
+    "mean_steps": 12.0
+  }
+]

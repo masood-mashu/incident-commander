@@ -884,7 +884,7 @@
           "source": "feature_flag_misconfig",
           "target": "api_eu",
           "mechanism": "missing config key in staged experiment",
-          "discoverable_via": "logs:api_eu",
+          "discoverable_via": "api_eu",
           "discovered": false
         }
       ]
@@ -1528,21 +1528,21 @@
           "source": "primary_db_failure",
           "target": "primary_db",
           "mechanism": "storage engine WAL corruption",
-          "discoverable_via": "logs:primary_db",
+          "discoverable_via": "primary_db",
           "discovered": false
         },
         {
           "source": "primary_db",
           "target": "api_us_east",
           "mechanism": "all DB connections rejected",
-          "discoverable_via": "metrics:api_us_east",
+          "discoverable_via": "api_us_east",
           "discovered": false
         },
         {
           "source": "api_us_east",
           "target": "global_lb",
           "mechanism": "us-east-1 health check failing",
-          "discoverable_via": "metrics:primary_db",
+          "discoverable_via": "primary_db",
           "discovered": false
         }
       ]

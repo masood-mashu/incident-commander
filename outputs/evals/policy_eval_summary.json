@@ -2,15 +2,15 @@
   {
     "policy": "random",
     "episodes": 100,
-    "mean_reward": -4.203,
-    "median_reward": -3.74,
+    "mean_reward": -4.697,
+    "median_reward": -4.24,
     "resolved_rate": 0.0,
-    "mean_steps": 5.24
+    "mean_steps": 5.54
   },
   {
     "policy": "heuristic",
     "episodes": 100,
-    "mean_reward": 2.373,
+    "mean_reward": 2.217,
     "median_reward": 8.74,
     "resolved_rate": 0.5,
     "mean_steps": 6.0
@@ -18,8 +18,8 @@
   {
     "policy": "trained",
     "episodes": 100,
-    "mean_reward": 4.65,
-    "median_reward": 10.9,
+    "mean_reward": 4.403,
+    "median_reward": 10.792,
     "resolved_rate": 0.72,
     "mean_steps": 11.28
   }

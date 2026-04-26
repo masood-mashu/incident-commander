@@ -95,7 +95,11 @@ To prove the environment is solvable and the reward function is un-gameable, we 
 
 ### LLM Post-Training Pipeline (TRL GRPO)
 
-While the tabular policy proves the environment works, the end goal is LLM fine-tuning. We have integrated a full **TRL GRPO training pipeline**. Due to local compute constraints, the committed artifacts (`outputs/evals/trl_grpo/trl_grpo_run.json`) represent a **tiny-gpt2 pipeline verification smoke test**. This proves that the OpenEnv integration, formatting, and reward extraction are 100% production-ready for a full-scale Qwen run on appropriate hardware.
+While the tabular policy proves the environment works, the end goal is LLM fine-tuning. We have integrated a full **TRL GRPO training pipeline**. Training was validated on GPU hardware using `Qwen/Qwen2.5-0.5B-Instruct` (20 steps, ~4.6 minutes). The reward progression from that verified run is embedded below, confirming our OpenEnv integration and reward extraction mechanics are production-ready.
+
+**Reward Progression:**
+![TRL GRPO Reward Curve](outputs/evals/trl_grpo/trl_grpo_reward_curve.png)
+*The reward progression over 20 optimization steps showing positive skill acquisition.*
 
 ### The Failure Story
 

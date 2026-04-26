@@ -5,6 +5,12 @@ entrypoint: incident_commander.server.app:app
 client_class: incident_commander.client.IncidentCommanderEnv
 tags:
   - openenv
+  - reinforcement-learning
   - rl
+  - llm
+  - agent
   - enterprise
+  - long-horizon
+  - causal-reasoning
+  - governance
   - incidents
