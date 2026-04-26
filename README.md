@@ -152,7 +152,7 @@ To prove the environment is solvable, we trained a **Tabular Softmax Policy-Grad
 |---|---:|---:|
 | Random | −4.70 | 0% |
 | Heuristic | +2.22 | 50% |
-| **Trained** | **+1.20** | **72%** |
+| **Trained** | +1.20 | **72% ✅** |
 
 ### What The Trained Agent Learns
 
