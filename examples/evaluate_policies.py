@@ -8,9 +8,11 @@ from pathlib import Path
 import random
 import subprocess
 import sys
-from typing import Any, Callable
+from typing import Any, Callable, cast
 
 import matplotlib
+from matplotlib.axes import Axes
+from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -151,18 +153,24 @@ def save_comparison_plot(results: list[dict[str, Any]]) -> None:
     means = [row["mean_reward"] for row in results]
     resolved = [row["resolved_rate"] for row in results]
 
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10.5, 4.5))
-    ax1.bar(labels, means, color=["#64748b", "#0284c7", "#16a34a"])
-    ax1.set_title("Mean Reward")
-    ax1.set_ylabel("Return")
+    fig, axes = cast(Any, plt).subplots(1, 2, figsize=(10.5, 4.5))
+    fig = cast(Figure, fig)
+    ax1, ax2 = cast(tuple[Axes, Axes], axes)
+    plot_fig = cast(Any, fig)
+    plot_ax1 = cast(Any, ax1)
+    plot_ax2 = cast(Any, ax2)
 
-    ax2.bar(labels, resolved, color=["#64748b", "#0284c7", "#16a34a"])
-    ax2.set_title("Resolved Rate")
-    ax2.set_ylim(0.0, 1.0)
+    plot_ax1.bar(labels, means, color=["#64748b", "#0284c7", "#16a34a"])
+    plot_ax1.set_title("Mean Reward")
+    plot_ax1.set_ylabel("Return")
 
-    fig.suptitle("Policy Comparison on Incident Commander")
-    fig.tight_layout()
-    fig.savefig(OUTPUT_DIR / "policy_comparison.png", dpi=140)
+    plot_ax2.bar(labels, resolved, color=["#64748b", "#0284c7", "#16a34a"])
+    plot_ax2.set_title("Resolved Rate")
+    plot_ax2.set_ylim(0.0, 1.0)
+
+    plot_fig.suptitle("Policy Comparison on Incident Commander")
+    plot_fig.tight_layout()
+    plot_fig.savefig(OUTPUT_DIR / "policy_comparison.png", dpi=140)
     plt.close(fig)
 
 
@@ -175,7 +183,9 @@ def main() -> None:
         )
 
     trained = TabularPolicy.load(POLICY_PATH)
-    trained_policy = lambda obs: trained.greedy_action(obs)
+
+    def trained_policy(obs: IncidentObservation) -> IncidentAction:
+        return trained.greedy_action(obs)
 
     # ── Standard test-split evaluation ──
     results = [
@@ -207,7 +217,7 @@ def main() -> None:
         json.dumps(traces, indent=2), encoding="utf-8"
     )
 
-    metadata = {
+    metadata: dict[str, str | int] = {
         "evaluated_split": "test",
         "episodes_per_policy": 100,
         "seed_start": 11,
@@ -224,11 +234,19 @@ def main() -> None:
     print("\n-- Robustness Benchmarks --")
     robustness: list[dict[str, Any]] = []
 
-    for split_name, episodes in [("test", 100), ("ood", 50), ("stress", 50), ("governance", 30)]:
-        for policy_name, policy_fn in [
-            ("heuristic", heuristic_policy),
-            ("trained", trained_policy),
-        ]:
+    splits: list[tuple[str, int]] = [
+        ("test", 100),
+        ("ood", 50),
+        ("stress", 50),
+        ("governance", 30),
+    ]
+    policies: list[tuple[str, Callable[[IncidentObservation], IncidentAction]]] = [
+        ("heuristic", heuristic_policy),
+        ("trained", trained_policy),
+    ]
+
+    for split_name, episodes in splits:
+        for policy_name, policy_fn in policies:
             try:
                 row = evaluate_policy(
                     f"{policy_name}_{split_name}",

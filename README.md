@@ -266,8 +266,13 @@ curl -X POST https://masood03-incident-commander.hf.space/step \
   -H "Content-Type: application/json" \
   -d '{"action_type": "query_tool", "tool_name": "metrics", "target": "checkout_service"}'
 
-# Get current state
+# Get current state after reset
 curl https://masood03-incident-commander.hf.space/state
+
+# Reset into the stress split (6-step budget)
+curl -X POST https://masood03-incident-commander.hf.space/reset \
+  -H "Content-Type: application/json" \
+  -d '{"split": "stress"}'
 ```
 
 ---
@@ -309,7 +314,7 @@ pip install -e ".[training]"
 python examples/minimal_trl_training.py          # Train baseline
 python examples/evaluate_policies.py              # Standard + robustness eval
 python examples/counterfactual_evaluator.py       # DQD + causal faithfulness
-python -m unittest discover -s tests -v           # 19 tests
+python -m unittest discover -s tests -v           # 21 tests
 ```
 
 ---

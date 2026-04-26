@@ -39,7 +39,11 @@ def create_app() -> "FastAPI":
     @app.post("/reset")
     def reset(payload: dict | None = None) -> JSONResponse:
         payload = payload or {}
-        observation = env.reset(payload.get("scenario_id"), payload.get("seed"))
+        observation = env.reset(
+            payload.get("scenario_id"),
+            payload.get("seed"),
+            payload.get("split", "base"),
+        )
         return JSONResponse({"observation": to_plain_data(observation)})
 
     @app.post("/step")
@@ -60,7 +64,15 @@ def create_app() -> "FastAPI":
 
     @app.get("/state")
     def state() -> JSONResponse:
-        return JSONResponse(to_plain_data(env.state()))
+        try:
+            return JSONResponse(to_plain_data(env.state()))
+        except RuntimeError as exc:
+            return JSONResponse(
+                {
+                    "initialized": False,
+                    "detail": str(exc),
+                }
+            )
 
     return app
 

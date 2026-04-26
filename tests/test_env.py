@@ -8,8 +8,11 @@ from __future__ import annotations
 
 import unittest
 
+from fastapi.testclient import TestClient
+
 from incident_commander.models import ActionType, IncidentAction
 from incident_commander.causal_graph import evaluate_causal_faithfulness
+from incident_commander.server.app import create_app
 from incident_commander.server.incident_environment import IncidentCommanderEnvironment
 
 
@@ -277,6 +280,29 @@ class CausalFaithfulnessTests(unittest.TestCase):
 
         self.assertGreater(result.faithfulness_score, 0.5)
         self.assertGreater(result.discovered_edges, 0)
+
+
+class ApiContractTests(unittest.TestCase):
+    """Submission-facing API smoke tests."""
+
+    def setUp(self) -> None:
+        self.client = TestClient(create_app())
+
+    def test_state_before_reset_is_nonfatal(self) -> None:
+        response = self.client.get("/state")
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertFalse(payload["initialized"])
+        self.assertIn("Call reset() first", payload["detail"])
+
+    def test_reset_forwards_split_to_environment(self) -> None:
+        response = self.client.post("/reset", json={"split": "stress"})
+        self.assertEqual(response.status_code, 200)
+
+        state_response = self.client.get("/state")
+        self.assertEqual(state_response.status_code, 200)
+        payload = state_response.json()
+        self.assertEqual(payload["max_steps"], 6)
 
 
 if __name__ == "__main__":
