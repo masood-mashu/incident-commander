@@ -15,35 +15,35 @@ tags:
 
 # Can LLMs Run a War Room Under Uncertainty?
 
-It's 3 AM. PagerDuty fires. Latency on the checkout service just tripled, error rates are climbing across two regions, and the on-call engineer has sixty seconds to decide: is this a bad deploy, a saturated database, or something upstream they can't even see yet?
+It is 3 AM. PagerDuty fires. Latency on the checkout service has tripled, error rates are spreading across two regions, and the on-call engineer has about a minute to decide whether this is a bad deploy, a saturated database, or something upstream they cannot see yet.
 
-Real incident response isn't a single clever prompt — it's a sustained, multi-step workflow under pressure with partial information. You triage alerts, query dashboards, form hypotheses, request approval for risky mitigations, communicate status to stakeholders, and only then — maybe — close the incident.
+That rhythm is what inspired this project. Real incident response is not a single clever prompt. It is a sequence of imperfect decisions under pressure: triaging alerts, checking metrics and logs, forming hypotheses, asking for approval on risky actions, keeping humans informed, and only then deciding whether the incident is truly over.
 
-**Incident Commander** is an [OpenEnv](https://github.com/pytorch/openenv)-compatible RL environment that drops an LLM agent into realistic enterprise outages — complete with **delayed consequences**, **hidden causal graphs**, and **governance constraints** — and asks it to resolve them end-to-end.
+**Incident Commander** is an [OpenEnv](https://github.com/pytorch/openenv)-compatible RL environment that drops an LLM agent into realistic enterprise outages — complete with **delayed consequences**, **hidden causal graphs**, and **governance constraints** — and asks it to resolve them end to end.
 
 👉 **[Try the live demo](https://huggingface.co/spaces/Masood03/incident-commander)** · **[Browse the code](https://github.com/masood-mashu/incident-commander)**
 
-## The Story That Made Us Rethink Everything
+## Why We Built It
 
-Early in development, we had a satisfying training curve: the baseline agent learned to query metrics, propose a hypothesis, and roll back the bad deploy. Reward went up. Resolved rate improved. We were happy.
+Early in development, we had the kind of result that feels reassuring at first: the baseline agent learned to query metrics, propose a hypothesis, and roll back a bad deploy. Reward moved up. Resolved rate improved. It looked like progress.
 
-Then we added **delayed-failure dynamics** — a single line of configuration that says "3 steps after you rollback checkout_service, payments_db connection pool spikes." Suddenly, the agent's reward crashed. It was *fixing the outage and causing a new one* in the same episode.
+Then we added **delayed-failure dynamics** — the idea that a "correct" mitigation can create a new problem a few steps later. In one scenario, rolling back `checkout_service` fixes latency immediately, but three steps later `payments_db` starts choking on invalidated connections. Suddenly the training curve stopped feeling neat. The agent was not just solving incidents. Sometimes it was solving one and creating another.
 
-This is what happens in real incidents. A rollback invalidates cached connections. A failover creates traffic pressure on the replica. A certificate rotation causes a brief auth storm. **No mitigation is consequence-free.**
+That felt much closer to real operations. A rollback can invalidate cached connections. A failover can overload the replica. A certificate rotation can trigger an auth storm. **In real systems, even the right move has a blast radius.**
 
-The baseline agent — the one with the nice reward curve — was memorizing a flat cause→fix mapping. It had no model of second-order effects. It was the RL equivalent of an on-call engineer who always just runs the playbook without thinking about blast radius.
+That was the moment the environment clicked for us. The earlier agent had learned a shallow cause-to-fix mapping. It did not really understand the outage. It was behaving like an inexperienced responder who follows the playbook without thinking through second-order effects.
 
 ## What We Built Differently
 
 ### 🧬 The Causal Incident Twin
 
-Every episode defines a hidden causal DAG — a ground-truth map of how the incident propagates through the service graph. The agent never sees it. It has to *discover* the causal chain through investigation.
+Every episode defines a hidden causal DAG — a ground-truth map of how the incident propagates through the service graph. The agent never sees it directly. It has to *discover* that chain by investigating.
 
-After the episode, we score **causal faithfulness**: did the agent's queries and hypotheses trace the actual causal chain? We found that higher reward correlates with higher causal faithfulness — the agent isn't just learning action patterns, it's learning to explicitly **trace the causal graph** through environment investigation.
+After the episode, we score **causal faithfulness**: did the agent's queries and hypotheses trace the actual causal chain? Higher reward correlates with higher causal faithfulness, which is exactly what we wanted. The agent is not just collecting points by chance; it is being rewarded for investigating the system in a more grounded way.
 
 ### ⏰ Delayed Consequences
 
-Mitigations have second-order effects that fire 2-4 steps later. The agent has to maintain situational awareness *after* it thinks the incident is resolved. This is the difference between "fix and forget" and "fix, monitor, and address the cascade."
+Mitigations have second-order effects that fire 2-4 steps later. The agent has to stay situationally aware *after* it thinks the incident is resolved. This is the difference between "fix and forget" and "fix, monitor, and handle the cascade."
 
 ### 🏛️ Governance-Constrained Mitigation
 
@@ -55,7 +55,7 @@ The agent must query compliance and budget tools *before* executing. Skip the ch
 
 ### 📊 Counterfactual Decision Quality Delta
 
-For every step, we fork the environment, replay alternative actions, and measure how much better the chosen action was. This produces a **Decision Quality Delta** chart — hard evidence that the trained policy makes causally better decisions, not just more frequent ones.
+For every step, we fork the environment, replay alternative actions, and measure how much better the chosen action was. This produces a **Decision Quality Delta** chart — a simple way to show whether the chosen move was actually better than realistic alternatives.
 
 ## The Reward Function
 
@@ -73,7 +73,7 @@ R = 1.2 × diagnosis_quality
   − 1.8 × governance_penalty
 ```
 
-Notice: **failure penalty (−2.2) is heavier than outcome bonus (+2.0)**, and **governance penalty (−1.8)** means you can do everything right technically and still lose if you violate policy. The waste penalty *escalates* with each consecutive junk action — a direct anti-gaming mechanism.
+Two things matter here. First, **failure penalty (−2.2) is heavier than outcome bonus (+2.0)**, so the environment is not easy to game with reckless actions. Second, **governance penalty (−1.8)** means a technically correct move can still be wrong in context if it violates policy or budget constraints.
 
 ## Results
 
@@ -95,15 +95,17 @@ To prove the environment is solvable and the reward function is difficult to gam
 
 ### LLM Post-Training Pipeline (TRL GRPO)
 
-While the tabular policy proves the environment works, the end goal is LLM fine-tuning. We have integrated a full **TRL GRPO training pipeline**. Training was validated on GPU hardware using `Qwen/Qwen2.5-0.5B-Instruct` (20 steps, ~4.6 minutes). The reward progression from that verified run is embedded below, confirming our OpenEnv integration and reward extraction mechanics are production-ready.
+While the tabular policy proves the environment works, the long-term goal is LLM fine-tuning. We integrated a full **TRL GRPO training pipeline** around a deliberately small model, `Qwen/Qwen2.5-0.5B-Instruct`, because we wanted something judges could realistically rerun. The committed artifact bundle comes from a verified 20-step GPU run, and the Colab notebook in the repo is configured for a longer rerunnable pass.
 
 **Reward Progression:**
 ![TRL GRPO Reward Curve](outputs/evals/trl_grpo/trl_grpo_reward_curve.png)
 *The reward progression over 20 optimization steps showing positive skill acquisition.*
 
-### The Failure Story
+### What We Think Judges Should Notice
 
-In the governance scenario, the heuristic policy achieves a technically successful failover — but gets penalized for skipping compliance. The trained policy learns to query compliance *first*, then execute. Same fix, different reward. This is the story we want judges to see.
+In the governance scenario, the heuristic policy can perform a technically successful failover and still lose because it skipped compliance. That is the behavior we wanted to surface. The environment should reward not just operational competence, but disciplined operational judgment.
+
+In other words, this project is not trying to be a flashy outage simulator. It is trying to be a useful training ground for agents that need to reason through messy professional workflows where the obvious answer is not always the complete answer.
 
 ## What's Next
 
@@ -118,4 +120,4 @@ In the governance scenario, the heuristic policy achieves a technically successf
 - 💻 **[GitHub](https://github.com/masood-mashu/incident-commander)** — environment, training, evaluation
 - 📊 **[Evidence Bundle](https://github.com/masood-mashu/incident-commander/tree/main/outputs/evals)** — all charts and data
 
-*Built for the Meta PyTorch OpenEnv Hackathon 2026. Powered by OpenEnv, TRL, causal reasoning, and the conviction that good AI should know when to ask for permission before breaking things.*
+*Built for the Meta PyTorch OpenEnv Hackathon 2026. Powered by OpenEnv, TRL, causal reasoning, and a strong preference for agents that investigate before they act.*

@@ -164,7 +164,7 @@ Compared with the heuristic policy, the trained policy shows a more reliable inc
 
 ### LLM Post-Training Pipeline Verification (TRL GRPO)
 
-While the tabular policy validates the environment mechanics, the end goal is LLM fine-tuning. We have integrated a full **TRL GRPO training pipeline**. Training was validated on GPU hardware using the `Qwen/Qwen2.5-0.5B-Instruct` model (20 steps, ~4.6 minutes). The reward curve starts at −2.9 and climbs to +4.8, demonstrating meaningful skill acquisition over the training run.
+While the tabular policy validates the environment mechanics, the end goal is LLM fine-tuning. We integrated a full **TRL GRPO training pipeline** around a small, judge-friendly model: `Qwen/Qwen2.5-0.5B-Instruct`. The committed artifact bundle below comes from a verified 20-step GPU run, while the Colab notebook in this repo is configured for a longer rerunnable 200-step pass.
 
 ```bash
 python examples/trl_grpo_training.py --model Qwen/Qwen2.5-0.5B-Instruct --max-steps 20 --dataset-repeats 24
@@ -173,7 +173,7 @@ python examples/trl_grpo_training.py --model Qwen/Qwen2.5-0.5B-Instruct --max-st
 ### TRL GRPO Reward Curve
 
 ![TRL GRPO Reward Curve](outputs/evals/trl_grpo/trl_grpo_reward_curve.png)
-*Reward progression over 20 GRPO optimization steps with Qwen2.5-0.5B-Instruct. The curve rises from −2.9 to +4.8 (peak 8.84), confirming the environment produces a learnable reward signal for LLM post-training.*
+*Reward progression from the verified 20-step GPU run. The curve rises from −2.9 to +4.8 (peak 8.84), confirming that the environment produces a learnable reward signal for LLM post-training.*
 
 ### TRL GRPO Loss Curve
 
@@ -217,6 +217,15 @@ python examples/trl_grpo_training.py --model Qwen/Qwen2.5-0.5B-Instruct --max-st
 | Trained | governance | 30 | −6.51 | 0% |
 
 *OOD scenarios use unseen 8-node microservices topologies and novel incident families (certificate expiry, capacity exhaustion) — neither policy has seen these during training, so 0% resolution is expected and demonstrates the environment's genuine difficulty. Under stress (6-step budget), the trained policy maintains 74% resolution rate vs 50% for heuristic, showing it prioritizes high-value actions under pressure. Governance scenarios require compliance and budget checks that neither the heuristic nor tabular policy is equipped to perform — this is precisely the gap that LLM post-training targets.*
+
+### Training Materials
+
+- **Rerunnable Colab notebook:** `notebooks/incident_commander_trl_grpo.ipynb`
+- **Training script:** `examples/trl_grpo_training.py`
+- **Tracked run metadata:** `outputs/evals/trl_grpo/trl_grpo_run.json`
+- **Tracked summary metrics:** `outputs/evals/trl_grpo/trl_grpo_summary.json`
+
+The notebook is written for judges first: clone, install, run, and inspect artifacts. We intentionally use a small model and LoRA-based post-training so the training loop is realistic to rerun instead of being a one-off giant-model demo.
 
 ---
 
