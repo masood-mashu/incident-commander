@@ -3,12 +3,12 @@
   "split": "train",
   "seed": 42,
   "learning_rate": 0.08,
-  "mean_reward": -1.8876666666666662,
-  "best_reward": 14.06,
-  "final_20_mean_reward": -0.8199999999999997,
+  "mean_reward": -2.937603333333336,
+  "best_reward": 10.569999999999999,
+  "final_20_mean_reward": -2.4475000000000007,
   "policy_path": "outputs/evals/tabular_policy.json",
   "reward_curve": "outputs/evals/training_reward_curve.png",
   "loss_curve": "outputs/evals/training_loss_curve.png",
-  "timestamp_utc": "2026-04-25T10:07:56.526549+00:00",
-  "git_commit": "ba89a9d"
+  "timestamp_utc": "2026-04-26T04:52:57.536093+00:00",
+  "git_commit": "b07cdb74"
 }

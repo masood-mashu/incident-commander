@@ -11,9 +11,9 @@
     "policy": "trained",
     "split": "test",
     "episodes": 100,
-    "mean_reward": 4.403,
+    "mean_reward": 1.199,
     "resolved_rate": 0.72,
-    "mean_steps": 11.28
+    "mean_steps": 7.18
   },
   {
     "policy": "heuristic",
@@ -27,9 +27,9 @@
     "policy": "trained",
     "split": "ood",
     "episodes": 50,
-    "mean_reward": -9.519,
+    "mean_reward": -10.292,
     "resolved_rate": 0.0,
-    "mean_steps": 12.0
+    "mean_steps": 9.3
   },
   {
     "policy": "heuristic",
@@ -43,9 +43,9 @@
     "policy": "trained",
     "split": "stress",
     "episodes": 50,
-    "mean_reward": 2.158,
+    "mean_reward": 2.271,
     "resolved_rate": 0.74,
-    "mean_steps": 6.0
+    "mean_steps": 5.28
   },
   {
     "policy": "heuristic",
@@ -59,7 +59,7 @@
     "policy": "trained",
     "split": "governance",
     "episodes": 30,
-    "mean_reward": -6.109,
+    "mean_reward": -6.505,
     "resolved_rate": 0.0,
     "mean_steps": 12.0
   }

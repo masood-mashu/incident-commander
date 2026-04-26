@@ -146,13 +146,13 @@ R = α×diagnosis_quality + β×mitigation_safety + γ×stakeholder_trust
 
 ### Environment Solvability (Tabular Policy Baseline)
 
-To prove the environment is solvable, we trained a **Tabular Softmax Policy-Gradient agent**. Because the environment has delayed effects, it takes significant exploration (mean reward during early training is negative), but after 300 episodes, it converges on the held-out test split:
+To prove the environment is solvable, we trained a **Tabular Softmax Policy-Gradient agent**. Because the environment has delayed effects, it takes significant exploration (mean reward during training remains noisy), but after 300 episodes the learned policy resolves more held-out incidents than the scripted heuristic:
 
 | Policy | Mean Reward | Resolved Rate |
 |---|---:|---:|
 | Random | −4.70 | 0% |
 | Heuristic | +2.22 | 50% |
-| **Trained** | **+4.40** | **72%** |
+| **Trained** | **+1.20** | **72%** |
 
 ### What The Trained Agent Learns
 
@@ -183,7 +183,7 @@ python examples/trl_grpo_training.py --model Qwen/Qwen2.5-0.5B-Instruct --max-st
 ### Held-Out Policy Comparison
 
 ![Policy Comparison](outputs/evals/policy_comparison.png)
-*Random (no signal) → heuristic (scripted playbook) → trained (learned from 300 episodes). The trained policy achieves +4.40 mean reward and 72% resolution rate on the held-out test split.*
+*Random (no signal) → heuristic (scripted playbook) → trained (learned from 300 episodes). The trained policy achieves +1.20 mean reward and 72% resolution rate on the held-out test split.*
 
 ### Counterfactual Decision Quality Delta
 
@@ -201,20 +201,20 @@ python examples/trl_grpo_training.py --model Qwen/Qwen2.5-0.5B-Instruct --max-st
 
 **Low causal faithfulness for tabular policy** (~0.23 average): The tabular policy operates on discretized observation features, not free-text reasoning. It cannot log explicit causal hypotheses — it selects actions implicitly. The faithfulness scorer rewards hypothesis alignment and targeted tool queries, which a text-based LLM agent would naturally produce but a tabular agent does only incidentally. The correlation between higher reward and higher faithfulness still holds, confirming the environment rewards systematic investigation.
 
-**Heuristic median (8.74) vs mean (2.22)**: This gap reveals a bimodal distribution — the heuristic either fully solves an episode (when it recognizes the scenario family) or completely fails (when it doesn't). The trained policy shows higher mean AND median (+10.79), demonstrating genuine robustness rather than lucky scripting.
+**Heuristic median (8.74) vs mean (2.22)**: This gap reveals a bimodal distribution — the heuristic either fully solves an episode (when it recognizes the scenario family) or completely fails (when it doesn't). The trained policy improves resolved rate to 72% with a +3.18 median reward, demonstrating broader coverage rather than lucky scripting.
 
 ### Robustness Benchmarks
 
 | Policy | Split | Episodes | Mean Reward | Resolved Rate |
 |---|---|---:|---:|---:|
 | Heuristic | test | 100 | +2.22 | 50% |
-| **Trained** | **test** | **100** | **+4.40** | **72%** |
+| **Trained** | **test** | **100** | **+1.20** | **72%** |
 | Heuristic | ood | 50 | −8.41 | 0% |
-| Trained | ood | 50 | −9.52 | 0% |
+| Trained | ood | 50 | −10.29 | 0% |
 | Heuristic | stress | 50 | +2.16 | 50% |
-| **Trained** | **stress** | **50** | **+2.16** | **74%** |
+| **Trained** | **stress** | **50** | **+2.27** | **74%** |
 | Heuristic | governance | 30 | −4.28 | 0% |
-| Trained | governance | 30 | −6.11 | 0% |
+| Trained | governance | 30 | −6.51 | 0% |
 
 *OOD scenarios use unseen 8-node microservices topologies and novel incident families (certificate expiry, capacity exhaustion) — neither policy has seen these during training, so 0% resolution is expected and demonstrates the environment's genuine difficulty. Under stress (6-step budget), the trained policy maintains 74% resolution rate vs 50% for heuristic, showing it prioritizes high-value actions under pressure. Governance scenarios require compliance and budget checks that neither the heuristic nor tabular policy is equipped to perform — this is precisely the gap that LLM post-training targets.*
 
@@ -296,6 +296,7 @@ uvicorn incident_commander.server.app:app --reload
 ### Run All Evaluations
 
 ```bash
+pip install -e ".[training]"
 python examples/minimal_trl_training.py          # Train baseline
 python examples/evaluate_policies.py              # Standard + robustness eval
 python examples/counterfactual_evaluator.py       # DQD + causal faithfulness

@@ -79,17 +79,17 @@ Notice: **failure penalty (−2.2) is heavier than outcome bonus (+2.0)**, and *
 
 ### Tabular Policy Baseline (Environment Solvability)
 
-To prove the environment is solvable and the reward function is un-gameable, we trained a **Tabular Softmax Policy-Gradient agent**. Because the environment is so complex, it takes significant exploration (mean reward during early training is negative), but after 300 episodes, it converges on the held-out test split:
+To prove the environment is solvable and the reward function is difficult to game, we trained a **Tabular Softmax Policy-Gradient agent**. Because the environment is so complex, it takes significant exploration and reward remains noisy, but after 300 episodes the learned policy resolves more held-out incidents than the scripted heuristic:
 
 | Policy | Mean Reward | Resolved Rate |
 |---|---|---|
-| Random | −4.461 | 0% |
-| Heuristic | +2.373 | 50% |
-| **Trained** | **+4.650** | **72%** |
+| Random | −4.697 | 0% |
+| Heuristic | +2.217 | 50% |
+| **Trained** | **+1.199** | **72%** |
 
 ### What the Charts Show
 
-1. **Reward curve**: monotonic improvement over 300 episodes
+1. **Reward curve**: noisy but real learning over 300 episodes
 2. **Decision Quality Delta**: the trained policy consistently chooses actions with higher downstream reward than alternatives
 3. **Causal faithfulness**: higher reward episodes correlate with more faithful causal chain tracing
 

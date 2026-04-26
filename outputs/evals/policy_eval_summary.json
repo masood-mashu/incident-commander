@@ -2,10 +2,10 @@
   {
     "policy": "random",
     "episodes": 100,
-    "mean_reward": -4.697,
-    "median_reward": -4.24,
+    "mean_reward": -4.618,
+    "median_reward": -4.044,
     "resolved_rate": 0.0,
-    "mean_steps": 5.54
+    "mean_steps": 4.72
   },
   {
     "policy": "heuristic",
@@ -18,9 +18,9 @@
   {
     "policy": "trained",
     "episodes": 100,
-    "mean_reward": 4.403,
-    "median_reward": 10.792,
+    "mean_reward": 1.199,
+    "median_reward": 3.18,
     "resolved_rate": 0.72,
-    "mean_steps": 11.28
+    "mean_steps": 7.18
   }
 ]
