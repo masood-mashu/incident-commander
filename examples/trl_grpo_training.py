@@ -1,3 +1,4 @@
+# pyright: reportGeneralTypeIssues=false, reportUnknownArgumentType=false, reportUnknownMemberType=false, reportUnknownVariableType=false, reportUnknownParameterType=false
 """Minimal HF TRL GRPO training script for Incident Commander.
 
 This script mirrors the official TRL + OpenEnv environment-training pattern:
@@ -95,21 +96,22 @@ SCENARIO_SPECS: dict[str, dict[str, str]] = {
 }
 
 
-def _to_text(value: Any) -> str:
+def _to_text(value: object) -> str:
     if isinstance(value, str):
         return value
     if isinstance(value, list):
+        items = cast(list[object], value)
         parts: list[str] = []
-        for item in value:
+        for item in items:
             if isinstance(item, dict):
-                content = item.get("content")
+                content = cast(dict[str, object], item).get("content")
                 if isinstance(content, str):
                     parts.append(content)
             elif isinstance(item, str):
                 parts.append(item)
         return "\n".join(parts)
     if isinstance(value, dict):
-        content = value.get("content")
+        content = cast(dict[str, object], value).get("content")
         if isinstance(content, str):
             return content
     return str(value)
@@ -126,17 +128,19 @@ def _parse_steps_from_completion(text: str) -> list[str]:
 
     try:
         parsed = json.loads(raw)
-        if isinstance(parsed, dict) and isinstance(parsed.get("steps"), list):
-            return [str(step).lower() for step in parsed["steps"]]
+        if isinstance(parsed, dict):
+            steps = cast(dict[str, object], parsed).get("steps")
+            if isinstance(steps, list):
+                return [str(step).lower() for step in cast(list[object], steps)]
         if isinstance(parsed, list):
-            return [str(step).lower() for step in parsed]
+            return [str(step).lower() for step in cast(list[object], parsed)]
     except Exception:
         pass
 
     try:
         parsed_literal = ast.literal_eval(raw)
         if isinstance(parsed_literal, list):
-            return [str(step).lower() for step in parsed_literal]
+            return [str(step).lower() for step in cast(list[Any], parsed_literal)]
     except Exception:
         pass
 
@@ -215,10 +219,13 @@ def _simulate_episode_reward(completion_text: str, scenario_id: str, split: str,
 
 
 def reward_func(
-    prompts: list[Any], completions: list[Any], scenario_id: list[str], split: list[str], seed: list[int], **_: Any
-) -> list[float | None]:
-    rewards: list[float | None] = []
-    for _, completion, sid, run_split, run_seed in zip(prompts, completions, scenario_id, split, seed, strict=True):
+    prompts: list[Any], completions: list[Any], **metadata: Any
+) -> list[float]:
+    rewards: list[float] = []
+    scenario_ids = cast(list[str], metadata.get("scenario_id", []))
+    splits = cast(list[str], metadata.get("split", []))
+    seeds = cast(list[int], metadata.get("seed", []))
+    for _, completion, sid, run_split, run_seed in zip(prompts, completions, scenario_ids, splits, seeds, strict=True):
         completion_text = _to_text(completion)
         rewards.append(_simulate_episode_reward(completion_text, str(sid), str(run_split), int(run_seed)))
     return rewards
@@ -368,7 +375,7 @@ def run_training(
 
     # Load tokenizer and set a ChatML template with full tool-calling
     # support so TRL's validation and add_response_schema both pass.
-    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    tokenizer = cast(Any, AutoTokenizer.from_pretrained(model_name))  # pyright: ignore[reportUnknownMemberType]
     CHATML_TOOL_TEMPLATE = (
         "{%- for message in messages %}"
         "{%- if message['role'] == 'system' %}"
@@ -398,7 +405,7 @@ def run_training(
     trainer = GRPOTrainer(
         model=model_name,
         processing_class=tokenizer,
-        reward_funcs=reward_func,
+        reward_funcs=cast(Any, reward_func),
         train_dataset=dataset,
         args=make_grpo_config(TRL_OUTPUT_DIR, max_steps=max_steps, learning_rate=learning_rate),
         peft_config=LoraConfig(
