@@ -13,10 +13,13 @@ from __future__ import annotations
 
 import argparse
 import ast
+from datetime import datetime, timezone
 import inspect
 import json
+import os
 from pathlib import Path
 import re
+import subprocess
 import traceback
 from typing import Any, cast
 
@@ -45,6 +48,22 @@ SYSTEM_PROMPT = (
     "communicate clearly, and only close the incident after recovery is verified. "
     "Be concise and action-oriented."
 )
+
+
+def _git_commit() -> str:
+    try:
+        repo_root = Path(__file__).resolve().parents[1]
+        cmd = ["git", "rev-parse", "--short", "HEAD"]
+        value = subprocess.check_output(cmd, text=True, cwd=repo_root).strip()
+        return value or "unknown"
+    except Exception:
+        return "unknown"
+
+
+def _tracking_backend() -> str:
+    if os.getenv("WANDB_PROJECT"):
+        return "wandb"
+    return "jsonl"
 
 
 def format_observation(observation: Any) -> str:
@@ -362,6 +381,37 @@ def save_training_artifacts(log_history: list[dict[str, Any]], output_dir: Path)
     return summary
 
 
+def write_tracking_artifacts(
+    log_history: list[dict[str, Any]],
+    output_dir: Path,
+    *,
+    model_name: str,
+    seed: int,
+    max_steps: int,
+    dataset_repeats: int,
+    learning_rate: float,
+) -> dict[str, Any]:
+    tracking_metadata = {
+        "timestamp_utc": datetime.now(timezone.utc).isoformat(),
+        "git_commit": _git_commit(),
+        "tracking_backend": _tracking_backend(),
+        "model_name": model_name,
+        "seed": seed,
+        "max_steps": max_steps,
+        "dataset_repeats": dataset_repeats,
+        "learning_rate": learning_rate,
+    }
+    (output_dir / "trl_grpo_tracking_metadata.json").write_text(
+        json.dumps(tracking_metadata, indent=2), encoding="utf-8"
+    )
+
+    with (output_dir / "trl_grpo_log_history.jsonl").open("w", encoding="utf-8") as handle:
+        for row in log_history:
+            handle.write(json.dumps(row, ensure_ascii=True) + "\n")
+
+    return tracking_metadata
+
+
 def run_training(
     model_name: str = DEFAULT_MODEL,
     max_steps: int = 20,
@@ -418,7 +468,17 @@ def run_training(
     )
 
     result = cast(Any, trainer).train()
-    summary = save_training_artifacts(list(trainer.state.log_history), TRL_OUTPUT_DIR)
+    log_history = list(trainer.state.log_history)
+    summary = save_training_artifacts(log_history, TRL_OUTPUT_DIR)
+    tracking_metadata = write_tracking_artifacts(
+        log_history,
+        TRL_OUTPUT_DIR,
+        model_name=model_name,
+        seed=seed,
+        max_steps=max_steps,
+        dataset_repeats=dataset_repeats,
+        learning_rate=learning_rate,
+    )
     merged: dict[str, float | int | None | str] = {
         "model_name": model_name,
         "seed": seed,
@@ -426,6 +486,11 @@ def run_training(
         "dataset_repeats": dataset_repeats,
         "train_runtime": getattr(result, "metrics", {}).get("train_runtime"),
         "train_steps_per_second": getattr(result, "metrics", {}).get("train_steps_per_second"),
+        "tracking_backend": str(tracking_metadata["tracking_backend"]),
+        "tracking_log": "outputs/evals/trl_grpo/trl_grpo_log_history.jsonl",
+        "tracking_metadata": "outputs/evals/trl_grpo/trl_grpo_tracking_metadata.json",
+        "timestamp_utc": str(tracking_metadata["timestamp_utc"]),
+        "git_commit": str(tracking_metadata["git_commit"]),
         **summary,
     }
     (TRL_OUTPUT_DIR / "trl_grpo_run.json").write_text(

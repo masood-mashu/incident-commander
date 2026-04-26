@@ -410,28 +410,32 @@ def reward_chart(rewards: list[float]):
     if not rewards:
         return None
     try:
-        fig, ax = plt.subplots(figsize=(7, 3), facecolor="white")  # pyright: ignore[reportUnknownMemberType]
+        fig, ax = plt.subplots(figsize=(7, 3), facecolor="#0a0e1a")  # pyright: ignore[reportUnknownMemberType]
         fig = cast(Any, fig)
         ax = cast(Any, ax)
-        ax.set_facecolor("#ffffff")
+        ax.set_facecolor("#111827")
 
         steps = list(range(1, len(rewards) + 1))
         cumulative = list(np.cumsum(rewards))
 
-        colors = ["#22c55e" if r >= 0 else "#ef4444" for r in rewards]
-        ax.bar(steps, rewards, color=colors, alpha=0.7, label="Step reward", zorder=3)
-        ax.plot(steps, cumulative, color="#60a5fa", linewidth=2,
-                marker="o", markersize=4, label="Cumulative", zorder=4)
-        ax.axhline(0, color="#4b5563", linewidth=0.8, linestyle="--")
+        colors = ["#34d399" if r >= 0 else "#f87171" for r in rewards]
+        ax.bar(steps, rewards, color=colors, alpha=0.8, label="Step reward", zorder=3,
+               edgecolor="none", width=0.6)
+        ax.plot(steps, cumulative, color="#818cf8", linewidth=2.5,
+                marker="o", markersize=5, label="Cumulative", zorder=4,
+                markerfacecolor="#a5b4fc", markeredgecolor="#818cf8")
+        ax.axhline(0, color="#475569", linewidth=0.8, linestyle="--", alpha=0.6)
 
-        ax.set_xlabel("Step", color="#334155", fontsize=9)
-        ax.set_ylabel("Reward", color="#334155", fontsize=9)
-        ax.set_title("Episode Reward Curve", color="#0f172a", fontsize=11, pad=8)
-        ax.tick_params(colors="#334155", labelsize=8)
+        ax.set_xlabel("Step", color="#94a3b8", fontsize=9, fontfamily="sans-serif")
+        ax.set_ylabel("Reward", color="#94a3b8", fontsize=9, fontfamily="sans-serif")
+        ax.set_title("Episode Reward Curve", color="#e2e8f0", fontsize=11, pad=10,
+                      fontweight="bold", fontfamily="sans-serif")
+        ax.tick_params(colors="#94a3b8", labelsize=8)
         for spine in ax.spines.values():
-            spine.set_edgecolor("#cbd5e1")
-        ax.legend(fontsize=8, facecolor="#ffffff", edgecolor="#cbd5e1")
-        ax.grid(True, color="#e2e8f0", linewidth=0.5, zorder=0)
+            spine.set_edgecolor((99/255, 102/255, 241/255, 0.2))
+        ax.legend(fontsize=8, facecolor="#1e293b", edgecolor=(99/255, 102/255, 241/255, 0.2),
+                  labelcolor="#e2e8f0")
+        ax.grid(True, color=(99/255, 102/255, 241/255, 0.1), linewidth=0.5, zorder=0)
 
         plt.tight_layout()
         return fig
@@ -445,42 +449,280 @@ def reward_chart(rewards: list[float]):
 # -- UI ------------------------------------------------------------------------
 
 CSS = """
-/* ── Force readable text in both light and dark mode ── */
-.gradio-container {
-    font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+
+/* ── Root & Theme ── */
+:root {
+    --ic-bg-primary: #0a0e1a;
+    --ic-bg-secondary: #111827;
+    --ic-bg-card: rgba(17, 24, 39, 0.85);
+    --ic-bg-glass: rgba(30, 41, 59, 0.55);
+    --ic-border: rgba(99, 102, 241, 0.2);
+    --ic-border-glow: rgba(99, 102, 241, 0.45);
+    --ic-accent: #818cf8;
+    --ic-accent-bright: #a5b4fc;
+    --ic-green: #34d399;
+    --ic-red: #f87171;
+    --ic-amber: #fbbf24;
+    --ic-text: #e2e8f0;
+    --ic-text-muted: #94a3b8;
+    --ic-text-bright: #f8fafc;
+    --ic-gradient-1: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --ic-gradient-2: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    --ic-gradient-hero: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
 }
 
-/* Markdown text */
-.gradio-container .prose h1,
-.gradio-container .prose h2,
-.gradio-container .prose h3 {
-    color: var(--body-text-color) !important;
+.gradio-container {
+    font-family: 'Inter', ui-sans-serif, -apple-system, BlinkMacSystemFont, sans-serif !important;
+    background: var(--ic-bg-primary) !important;
+    max-width: 1400px !important;
+    color: var(--ic-text) !important;
 }
+
+.gradio-container .dark {
+    --body-background-fill: var(--ic-bg-primary) !important;
+}
+
+/* ── Hero Header ── */
+#hero-header {
+    background: var(--ic-gradient-hero) !important;
+    border: 1px solid var(--ic-border) !important;
+    border-radius: 16px !important;
+    padding: 28px 36px !important;
+    margin-bottom: 16px !important;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 0 60px rgba(99, 102, 241, 0.1), 0 0 120px rgba(120, 75, 162, 0.05);
+}
+#hero-header::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle at 30% 50%, rgba(99, 102, 241, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 70% 80%, rgba(168, 85, 247, 0.06) 0%, transparent 50%);
+    animation: shimmer 15s ease-in-out infinite alternate;
+    pointer-events: none;
+}
+@keyframes shimmer {
+    0% { transform: translate(0, 0) rotate(0deg); }
+    100% { transform: translate(-5%, 5%) rotate(3deg); }
+}
+#hero-header h1 {
+    font-size: 2rem !important;
+    font-weight: 800 !important;
+    background: linear-gradient(135deg, #c7d2fe 0%, #a5b4fc 30%, #e9d5ff 60%, #fecdd3 100%);
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    margin-bottom: 4px !important;
+    letter-spacing: -0.02em !important;
+}
+#hero-header h3 {
+    color: var(--ic-text-muted) !important;
+    font-weight: 400 !important;
+    font-size: 0.95rem !important;
+    margin-top: 0 !important;
+}
+#hero-header p {
+    color: var(--ic-text-muted) !important;
+    font-size: 0.82rem !important;
+}
+#hero-header strong {
+    color: var(--ic-accent-bright) !important;
+}
+
+/* ── Tabs ── */
+.gradio-container .tab-nav {
+    background: var(--ic-bg-secondary) !important;
+    border: 1px solid var(--ic-border) !important;
+    border-radius: 12px !important;
+    padding: 4px !important;
+    gap: 4px !important;
+    margin-bottom: 16px !important;
+}
+.gradio-container .tab-nav button {
+    font-family: 'Inter', sans-serif !important;
+    font-weight: 500 !important;
+    font-size: 0.85rem !important;
+    color: var(--ic-text-muted) !important;
+    background: transparent !important;
+    border: none !important;
+    border-radius: 8px !important;
+    padding: 10px 20px !important;
+    transition: all 0.25s ease !important;
+}
+.gradio-container .tab-nav button:hover {
+    color: var(--ic-text-bright) !important;
+    background: rgba(99, 102, 241, 0.1) !important;
+}
+.gradio-container .tab-nav button.selected {
+    background: var(--ic-gradient-1) !important;
+    color: #fff !important;
+    box-shadow: 0 2px 12px rgba(99, 102, 241, 0.3) !important;
+}
+
+/* ── Cards / Panels ── */
+.panel-card {
+    background: var(--ic-bg-card) !important;
+    border: 1px solid var(--ic-border) !important;
+    border-radius: 12px !important;
+    padding: 20px !important;
+    backdrop-filter: blur(16px) !important;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease !important;
+}
+.panel-card:hover {
+    border-color: var(--ic-border-glow) !important;
+    box-shadow: 0 0 24px rgba(99, 102, 241, 0.08) !important;
+}
+
+/* ── Markdown text overrides ── */
+.gradio-container .prose,
 .gradio-container .prose p,
 .gradio-container .prose li,
 .gradio-container .prose strong,
 .gradio-container .prose em,
-.gradio-container .prose code,
-.gradio-container .prose blockquote {
-    color: var(--body-text-color) !important;
+.gradio-container .prose blockquote,
+.gradio-container .prose code {
+    color: var(--ic-text) !important;
+    font-family: 'Inter', sans-serif !important;
+}
+.gradio-container .prose h1, .gradio-container .prose h2, .gradio-container .prose h3 {
+    color: var(--ic-text-bright) !important;
+    font-weight: 700 !important;
+}
+.gradio-container .prose h3 {
+    font-size: 1.1rem !important;
+    border-bottom: 1px solid var(--ic-border) !important;
+    padding-bottom: 8px !important;
+    margin-bottom: 12px !important;
+}
+.gradio-container .prose code {
+    font-family: 'JetBrains Mono', monospace !important;
+    background: rgba(99, 102, 241, 0.12) !important;
+    padding: 2px 6px !important;
+    border-radius: 4px !important;
+    font-size: 0.82rem !important;
+    color: var(--ic-accent-bright) !important;
 }
 
-/* Table readability */
+/* ── Tables ── */
 .gradio-container .prose table {
-    color: var(--body-text-color) !important;
-}
-.gradio-container .prose th,
-.gradio-container .prose td {
-    color: var(--body-text-color) !important;
-    border-color: var(--border-color-primary) !important;
+    width: 100% !important;
+    border-collapse: separate !important;
+    border-spacing: 0 !important;
+    border-radius: 8px !important;
+    overflow: hidden !important;
+    border: 1px solid var(--ic-border) !important;
 }
 .gradio-container .prose th {
-    background: var(--background-fill-secondary) !important;
+    background: rgba(99, 102, 241, 0.15) !important;
+    color: var(--ic-accent-bright) !important;
+    font-weight: 600 !important;
+    font-size: 0.8rem !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.04em !important;
+    padding: 10px 14px !important;
+}
+.gradio-container .prose td {
+    color: var(--ic-text) !important;
+    padding: 8px 14px !important;
+    border-top: 1px solid rgba(99, 102, 241, 0.08) !important;
+    font-size: 0.85rem !important;
+}
+.gradio-container .prose tr:hover td {
+    background: rgba(99, 102, 241, 0.05) !important;
 }
 
-/* Label text */
+/* ── Buttons ── */
+.gradio-container button.primary {
+    background: var(--ic-gradient-1) !important;
+    border: none !important;
+    color: #fff !important;
+    font-family: 'Inter', sans-serif !important;
+    font-weight: 600 !important;
+    font-size: 0.9rem !important;
+    border-radius: 10px !important;
+    padding: 12px 28px !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 2px 16px rgba(99, 102, 241, 0.25) !important;
+    letter-spacing: 0.01em !important;
+}
+.gradio-container button.primary:hover {
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 24px rgba(99, 102, 241, 0.4) !important;
+}
+.gradio-container button.secondary {
+    background: var(--ic-bg-glass) !important;
+    border: 1px solid var(--ic-border) !important;
+    color: var(--ic-text) !important;
+    font-family: 'Inter', sans-serif !important;
+    font-weight: 500 !important;
+    font-size: 0.9rem !important;
+    border-radius: 10px !important;
+    padding: 12px 28px !important;
+    transition: all 0.3s ease !important;
+}
+.gradio-container button.secondary:hover {
+    border-color: var(--ic-border-glow) !important;
+    background: rgba(99, 102, 241, 0.12) !important;
+    transform: translateY(-1px) !important;
+}
+
+/* ── Labels ── */
 .label-wrap, .label-wrap span {
-    color: var(--body-text-color) !important;
+    color: var(--ic-text-muted) !important;
+    font-family: 'Inter', sans-serif !important;
+    font-weight: 500 !important;
+    font-size: 0.78rem !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.05em !important;
+}
+
+/* ── Plot container ── */
+.gradio-container .plot-container {
+    background: var(--ic-bg-card) !important;
+    border: 1px solid var(--ic-border) !important;
+    border-radius: 12px !important;
+}
+
+/* ── Status badges (used in markdown) ── */
+.gradio-container .prose strong {
+    color: var(--ic-accent-bright) !important;
+}
+
+/* ── Accordion ── */
+.gradio-container .accordion {
+    background: var(--ic-bg-card) !important;
+    border: 1px solid var(--ic-border) !important;
+    border-radius: 12px !important;
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--ic-bg-primary); }
+::-webkit-scrollbar-thumb { background: var(--ic-border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--ic-accent); }
+
+/* ── Block backgrounds ── */
+.gradio-container .block {
+    background: transparent !important;
+    border: none !important;
+}
+.gradio-container .tabitem {
+    background: transparent !important;
+}
+
+/* ── Footer ── */
+#ic-footer {
+    border-top: 1px solid var(--ic-border) !important;
+    padding-top: 12px !important;
+    margin-top: 24px !important;
+}
+#ic-footer p, #ic-footer a {
+    color: var(--ic-text-muted) !important;
+    font-size: 0.8rem !important;
 }
 
 footer { display: none !important; }
@@ -547,53 +789,98 @@ def load_counterfactual_markdown() -> str:
         return f"### Counterfactual Analysis\nError loading: {exc}"
 
 
+# ── Build the Gradio app ──────────────────────────────────────────────────────
+
+IC_THEME = gr.themes.Base(
+    primary_hue=gr.themes.colors.indigo,
+    secondary_hue=gr.themes.colors.purple,
+    neutral_hue=gr.themes.colors.slate,
+    font=gr.themes.GoogleFont("Inter"),
+    font_mono=gr.themes.GoogleFont("JetBrains Mono"),
+).set(
+    body_background_fill="#0a0e1a",
+    body_background_fill_dark="#0a0e1a",
+    body_text_color="#e2e8f0",
+    body_text_color_dark="#e2e8f0",
+    body_text_color_subdued="#94a3b8",
+    body_text_color_subdued_dark="#94a3b8",
+    block_background_fill="transparent",
+    block_background_fill_dark="transparent",
+    block_border_width="0px",
+    input_background_fill="#1e293b",
+    input_background_fill_dark="#1e293b",
+    input_border_color="rgba(99,102,241,0.2)",
+    button_primary_background_fill="linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+    button_primary_background_fill_dark="linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+    button_primary_text_color="#ffffff",
+    button_secondary_background_fill="rgba(30,41,59,0.55)",
+    button_secondary_background_fill_dark="rgba(30,41,59,0.55)",
+    button_secondary_border_color="rgba(99,102,241,0.2)",
+    button_secondary_text_color="#e2e8f0",
+)
+
 with gr.Blocks(title="Incident Commander — OpenEnv") as demo:
+    demo.theme = IC_THEME
     demo.css = CSS
-    demo.theme = gr.themes.Soft()
     state = gr.State(SessionState())
 
+    # ── Hero ──
     gr.Markdown(
         """
 # 🚨 Incident Commander
 ### Long-horizon enterprise outage resolution with delayed consequences & causal reasoning
 
-Built for the **Meta PyTorch OpenEnv Hackathon 2026** | Features: delayed-failure dynamics, governance constraints, causal incident twin
-""")
+Built for the **Meta PyTorch OpenEnv Hackathon 2026** · Delayed-failure dynamics · Governance constraints · Causal incident twin
+""",
+        elem_id="hero-header",
+    )
 
     with gr.Tabs():
+        # ── Tab 1: Interactive Demo ──
         with gr.TabItem("🎮 Interactive Demo"):
-            with gr.Row():
-                with gr.Column(scale=3):
-                    obs_box = gr.Markdown("*Start an episode to begin.*", label="Observation")
-                with gr.Column(scale=1):
+            with gr.Row(equal_height=False):
+                with gr.Column(scale=3, min_width=400):
+                    gr.Markdown("#### 📡 Observation Feed", elem_classes=["panel-card"])
+                    obs_box = gr.Markdown(
+                        "*Press **▶ New Episode** to generate an incident scenario and begin.*",
+                        label="Observation",
+                    )
+                with gr.Column(scale=1, min_width=200):
+                    gr.Markdown("#### ⚡ Step Reward", elem_classes=["panel-card"])
                     reward_box = gr.Markdown("", label="Step Reward")
+                    gr.Markdown("#### 📈 Cumulative", elem_classes=["panel-card"])
                     total_box = gr.Markdown("", label="Cumulative")
 
             with gr.Row():
-                start_btn = gr.Button("▶ New Episode", variant="primary")
-                step_btn = gr.Button("⏭ Agent Step", variant="secondary", interactive=False)
+                start_btn = gr.Button("▶  New Episode", variant="primary", size="lg")
+                step_btn = gr.Button("⏭  Agent Step", variant="secondary", size="lg", interactive=False)
 
-            with gr.Row():
-                with gr.Column(scale=2):
+            with gr.Row(equal_height=True):
+                with gr.Column(scale=2, min_width=300):
+                    gr.Markdown("#### 📋 Action Log", elem_classes=["panel-card"])
                     log_box = gr.Markdown("", label="Action Log")
-                with gr.Column(scale=3):
-                    chart = gr.Plot(label="Reward Curve")
+                with gr.Column(scale=3, min_width=400):
+                    chart = gr.Plot(label="Episode Reward Curve")
 
+        # ── Tab 2: Judge Replay ──
         with gr.TabItem("🏆 Judge Replay"):
             gr.Markdown(
-                "One-click counterfactual replay: see how the agent's decisions compare to "
-                "alternatives, and how faithfully it traced the hidden causal graph."
+                "#### Counterfactual Replay\n"
+                "See how the agent's decisions compare to alternatives, "
+                "and how faithfully it traced the hidden causal graph.",
+                elem_classes=["panel-card"],
             )
             cf_box = gr.Markdown(load_counterfactual_markdown(), label="Counterfactual Analysis")
-            refresh_cf_btn = gr.Button("🔄 Refresh Analysis", variant="secondary")
+            refresh_cf_btn = gr.Button("🔄  Refresh Analysis", variant="secondary")
             refresh_cf_btn.click(load_counterfactual_markdown, inputs=[], outputs=[cf_box])
 
+        # ── Tab 3: Results ──
         with gr.TabItem("📊 Results"):
             results_box = gr.Markdown(load_results_markdown(), label="Results")
-            refresh_results_btn = gr.Button("Refresh Results", variant="secondary")
+            refresh_results_btn = gr.Button("🔄  Refresh Results", variant="secondary")
             refresh_results_btn.click(load_results_markdown, inputs=[], outputs=[results_box])
 
-    # wire buttons
+    # ── Wire buttons ──
     start_btn.click(
         start_episode,
         inputs=[state],
@@ -608,8 +895,10 @@ Built for the **Meta PyTorch OpenEnv Hackathon 2026** | Features: delayed-failur
     gr.Markdown(
         """
 ---
-Resources: [OpenEnv](https://github.com/meta-pytorch/OpenEnv) | [TRL](https://huggingface.co/docs/trl)
-""")
+[OpenEnv](https://github.com/meta-pytorch/OpenEnv) · [TRL](https://huggingface.co/docs/trl) · Meta PyTorch OpenEnv Hackathon 2026
+""",
+        elem_id="ic-footer",
+    )
 
 from incident_commander.server.app import app as fastapi_app
 

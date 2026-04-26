@@ -95,11 +95,11 @@ To prove the environment is solvable and the reward function is difficult to gam
 
 ### LLM Post-Training Pipeline (TRL GRPO)
 
-While the tabular policy proves the environment works, the long-term goal is LLM fine-tuning. We integrated a full **TRL GRPO training pipeline** around a deliberately small model, `Qwen/Qwen2.5-0.5B-Instruct`, because we wanted something judges could realistically rerun. The committed artifact bundle comes from a verified 20-step GPU run, and the Colab notebook in the repo is configured for a longer rerunnable pass.
+While the tabular policy proves the environment works, the long-term goal is LLM fine-tuning. We integrated a full **TRL GRPO training pipeline** around a deliberately small model, `Qwen/Qwen2.5-0.5B-Instruct`, because we wanted something judges could realistically rerun. The committed artifact bundle comes from a verified 200-step GPU run, and the Colab notebook in the repo is configured to rerun that same 200-step pass.
 
 **Reward Progression:**
 ![TRL GRPO Reward Curve](outputs/evals/trl_grpo/trl_grpo_reward_curve.png)
-*The reward progression over 20 optimization steps showing positive skill acquisition.*
+*The reward progression over 200 optimization steps showing positive skill acquisition.*
 
 ### What We Think Judges Should Notice
 

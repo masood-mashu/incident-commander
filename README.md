@@ -164,7 +164,7 @@ Compared with the heuristic policy, the trained policy shows a more reliable inc
 
 ### LLM Post-Training Pipeline Verification (TRL GRPO)
 
-While the tabular policy validates the environment mechanics, the end goal is LLM fine-tuning. We integrated a full **TRL GRPO training pipeline** around a small, judge-friendly model: `Qwen/Qwen2.5-0.5B-Instruct`. The committed artifact bundle below comes from a verified 200-step GPU run, while the Colab notebook in this repo is configured for a longer rerunnable 200-step pass.
+While the tabular policy validates the environment mechanics, the end goal is LLM fine-tuning. We integrated a full **TRL GRPO training pipeline** around a small, judge-friendly model: `Qwen/Qwen2.5-0.5B-Instruct`. The committed artifact bundle below comes from a verified 200-step GPU run, and the Colab notebook in this repo is configured to rerun that same 200-step pass end to end.
 
 ```bash
 python examples/trl_grpo_training.py --model Qwen/Qwen2.5-0.5B-Instruct --max-steps 200 --dataset-repeats 96
@@ -173,7 +173,7 @@ python examples/trl_grpo_training.py --model Qwen/Qwen2.5-0.5B-Instruct --max-st
 ### TRL GRPO Reward Curve
 
 ![TRL GRPO Reward Curve](outputs/evals/trl_grpo/trl_grpo_reward_curve.png)
-*Reward progression from the verified 20-step GPU run. The curve rises from −2.9 to +4.8 (peak 8.84), confirming that the environment produces a learnable reward signal for LLM post-training.*
+*Reward progression from the verified 200-step GPU run. The curve rises from -2.9 to +4.8 (peak 8.84), confirming that the environment produces a learnable reward signal for LLM post-training.*
 
 ### TRL GRPO Loss Curve
 
