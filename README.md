@@ -164,10 +164,10 @@ Compared with the heuristic policy, the trained policy shows a more reliable inc
 
 ### LLM Post-Training Pipeline Verification (TRL GRPO)
 
-While the tabular policy validates the environment mechanics, the end goal is LLM fine-tuning. We integrated a full **TRL GRPO training pipeline** around a small, judge-friendly model: `Qwen/Qwen2.5-0.5B-Instruct`. The committed artifact bundle below comes from a verified 20-step GPU run, while the Colab notebook in this repo is configured for a longer rerunnable 200-step pass.
+While the tabular policy validates the environment mechanics, the end goal is LLM fine-tuning. We integrated a full **TRL GRPO training pipeline** around a small, judge-friendly model: `Qwen/Qwen2.5-0.5B-Instruct`. The committed artifact bundle below comes from a verified 200-step GPU run, while the Colab notebook in this repo is configured for a longer rerunnable 200-step pass.
 
 ```bash
-python examples/trl_grpo_training.py --model Qwen/Qwen2.5-0.5B-Instruct --max-steps 20 --dataset-repeats 24
+python examples/trl_grpo_training.py --model Qwen/Qwen2.5-0.5B-Instruct --max-steps 200 --dataset-repeats 96
 ```
 
 ### TRL GRPO Reward Curve
